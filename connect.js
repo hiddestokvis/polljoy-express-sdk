@@ -124,9 +124,10 @@ class Connect {
               deviceId: req.body.deviceId,
             });
           }
-          request.post({
+          request({
             url: `${this.backend}registerSession.json`,
             qs: params,
+            method: 'POST',
           }, (err, result) => {
             if (err) {
               res.status(500).send(err);

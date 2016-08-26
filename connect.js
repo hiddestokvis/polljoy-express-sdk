@@ -126,7 +126,7 @@ class Connect {
           }
           request.post({
             url: `${this.backend}registerSession.json`,
-            form: params,
+            qs: params,
           }, (err, result) => {
             if (err) {
               res.status(500).send(err);
@@ -188,7 +188,7 @@ class Connect {
         }
         request.post({
           url: `${this.backend}smartget.json`,
-          form: params,
+          qs: params,
         }, (err, result) => {
           if (err) {
             res.status(500).send(err);
@@ -216,7 +216,7 @@ class Connect {
         }
         request.post({
           url: `${this.backend}response/${req.query.token}.json`,
-          form: params,
+          qs: params,
         }, (err, result) => {
           if (err) {
             res.status(500).send(err);

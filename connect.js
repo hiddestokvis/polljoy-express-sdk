@@ -179,7 +179,7 @@ class Connect {
           'timeSinceInstall',
           'tags',
         ].forEach((key) => {
-          if (params[key].trim() === '') {
+          if (params[key] && params[key].trim() === '') {
             delete params[key];
           }
         });

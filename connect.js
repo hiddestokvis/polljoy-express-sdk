@@ -214,14 +214,14 @@ class Connect {
         if (params.deviceId || params.deviceId.length === 0) {
           params.deviceId = req.session.device_id || deviceId;
         }
-        console.log(params);
         request.post({
           url: `${this.backend}response/${req.query.token}.json`,
           json: params,
-        }, (err, result) => {
+        }, (err, result, body) => {
           if (err) {
             res.status(500).send(err);
           } else {
+            console.log(body);
             const data = JSON.parse(result.body);
             res.send(data);
           }

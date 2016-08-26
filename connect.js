@@ -124,10 +124,9 @@ class Connect {
               deviceId: req.body.deviceId,
             });
           }
-          request({
+          request.post({
             url: `${this.backend}registerSession.json`,
-            qs: params,
-            method: 'POST',
+            form: params,
           }, (err, result) => {
             if (err) {
               res.status(500).send(err);
@@ -189,7 +188,7 @@ class Connect {
         }
         request.post({
           url: `${this.backend}smartget.json`,
-          qs: params,
+          form: params,
         }, (err, result) => {
           if (err) {
             res.status(500).send(err);

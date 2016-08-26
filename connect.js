@@ -137,7 +137,7 @@ class Connect {
               }
               Object.assign(req.session, {
                 current_session: JSON.stringify(data),
-                device_id: params.deviceId,
+                device_id: data.deviceId,
               });
               res.send(data);
             }

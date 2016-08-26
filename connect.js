@@ -137,7 +137,7 @@ class Connect {
               }
               Object.assign(req.session, {
                 current_session: JSON.stringify(data),
-                device_id: data.deviceId,
+                device_id: params.deviceId,
               });
               res.send(data);
             }
@@ -211,14 +211,13 @@ class Connect {
 
       if (req.query.response) {
         const params = req.body;
-        if (params.deviceId || params.deviceId.length === 0) {
+        if (!params.deviceId || params.deviceId.length === 0) {
           params.deviceId = req.session.device_id || deviceId;
         }
-        console.log(params);
         request.post({
           url: `${this.backend}response/${req.query.token}.json`,
           form: params,
-        }, (err, result, body) => {
+        }, (err, result) => {
           if (err) {
             res.status(500).send(err);
           } else {

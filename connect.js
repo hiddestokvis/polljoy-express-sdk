@@ -265,14 +265,8 @@ class Connect {
       return true;
     });
 
-    app.post(`${url}/:appNo`, (req, res) => {
-      const no = parseInt(req.params.appNo, 10);
-      if (process.env.polls) {
-        const appIds = process.env.polls.split(',');
-        if (appIds.length > no) {
-          this.appId = appIds[no];
-        }
-      }
+    app.post(`${url}/:appId`, (req, res) => {
+      this.appId = req.params.appId;
       if (req.query.register) { // If register query is found
         this.register(req, res);
         return true;

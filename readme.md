@@ -35,14 +35,7 @@ This will initialize the /polljoy [POST] endpoint. Follow the regular polljoy in
 
 ## Extra appIds
 
-If you want to use multiple separate polls on your website (or in your app) you'll need to create multiple apps in Polljoy. Store your appIds in your environment variables separated by a comma like so:
-
-```polls='appid1,appid2' node ...your app...```
-
-And point your javascript sdk to your url followed by the number of the appId, so for appid1 i would point it at:
-
-```http://mybackend.com/polljoy/0```
-
+If you want to use multiple separate polls on your website (or in your app) you'll need to create multiple apps in Polljoy. Point your javascript sdk to your url followed by the appId, so for appid1 I would point it at: ```http://mybackend.com/polljoy/appid1```
 
 ## Contribute
 

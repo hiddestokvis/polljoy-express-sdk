@@ -94,6 +94,152 @@ class Connect {
   }
 
   /**
+  * register()
+  * handles the register function
+  *
+  * @param {Object} req: request object
+  * @param {Object} res: response object
+  */
+  register(req, res) {
+    const deviceId = this.getDeviceId(req);
+    if (
+      req.body &&
+      req.body.deviceId &&
+      req.session &&
+      !(req.body.deviceId === req.session.device_id)
+    ) {
+      Reflect.deleteProperty(req.session, 'current_session');
+    }
+    if (!req.session || !req.session.current_session) {
+      const params = {
+        appId: this.appId,
+        deviceId,
+        deviceModel: 'web',
+        osVersion: this.getOs(req),
+      };
+      if (req.body && req.body.deviceId) {
+        Object.assign(params, {
+          deviceId: req.body.deviceId,
+        });
+      }
+      request.post({
+        url: `${this.backend}registerSession.json`,
+        form: params,
+      }, (err, result) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          const data = JSON.parse(result.body);
+          if (data.session) {
+            delete data.session.appId;
+          }
+          Object.assign(req.session, {
+            current_session: JSON.stringify(data),
+            device_id: params.deviceId,
+          });
+          res.send(data);
+        }
+      });
+    } else {
+      res.send(req.session.current_session);
+    }
+  }
+
+  /**
+  * smartGet()
+  * handles the smartGet endpoint
+  *
+  * @param {Object} req: request object
+  * @param {Object} res: response object
+  */
+  smartGet(req, res) {
+    const deviceId = this.getDeviceId(req);
+    const defaultArr = {
+      userType: 'Non-Pay',
+      appVersion: '',
+      deviceId: '',
+      level: '',
+      sessionCount: '',
+      timeSinceInstall: '',
+      tags: '',
+    };
+    const params = req.body;
+    for (let i = 0; i < Object.keys(defaultArr); i++) {
+      const key = Object.keys(defaultArr)[i];
+      if (!params[key]) {
+        Object.assign(params, {
+          [key]: defaultArr[key],
+        });
+      }
+    }
+    Object.assign(params, {
+      deviceModel: this.getDevice(req),
+      platform: 'web',
+      osVersion: this.getOs(req),
+    });
+    [
+      'appVersion',
+      'level',
+      'sessionCount',
+      'timeSinceInstall',
+      'tags',
+    ].forEach((key) => {
+      if (params[key] && params[key].trim() === '') {
+        delete params[key];
+      }
+    });
+    if (!params.deviceId || params.deviceId.length === 0) {
+      params.deviceId = req.session.device_id || deviceId;
+    }
+    request.post({
+      url: `${this.backend}smartget.json`,
+      form: params,
+    }, (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        const data = JSON.parse(result.body);
+        if (data.polls && typeof data.polls === 'object') {
+          if (data.session) {
+            delete data.session.appId;
+          }
+          for (let i = 0; i < Object.keys(data.polls); i++) {
+            const key = Object.keys(data.polls)[i];
+            delete data.polls[key].PollRequest.appId;
+          }
+        }
+        res.send(data);
+      }
+    });
+  }
+
+  /**
+  * response()
+  * handles the response endpoint
+  *
+  * @param {Object} req: request object
+  * @param {Object} res: response object
+  */
+  response(req, res) {
+    const deviceId = this.getDeviceId(req);
+    const params = req.body;
+    if (!params.deviceId || params.deviceId.length === 0) {
+      params.deviceId = req.session.device_id || deviceId;
+    }
+    request.post({
+      url: `${this.backend}response/${req.query.token}.json`,
+      form: params,
+    }, (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        const data = JSON.parse(result.body);
+        res.send(data);
+      }
+    });
+  }
+
+  /**
   * createEndpoints()
   * create the polljoy endpoints
   *
@@ -102,129 +248,43 @@ class Connect {
   */
   createEndpoints(app, url) {
     app.post(url, (req, res) => {
-      const deviceId = this.getDeviceId(req);
       if (req.query.register) { // If register query is found
-        if (
-          req.body &&
-          req.body.deviceId &&
-          req.session &&
-          !(req.body.deviceId === req.session.device_id)
-        ) {
-          Reflect.deleteProperty(req.session, 'current_session');
-        }
-        if (!req.session || !req.session.current_session) {
-          const params = {
-            appId: this.appId,
-            deviceId,
-            deviceModel: 'web',
-            osVersion: this.getOs(req),
-          };
-          if (req.body && req.body.deviceId) {
-            Object.assign(params, {
-              deviceId: req.body.deviceId,
-            });
-          }
-          request.post({
-            url: `${this.backend}registerSession.json`,
-            form: params,
-          }, (err, result) => {
-            if (err) {
-              res.status(500).send(err);
-            } else {
-              const data = JSON.parse(result.body);
-              if (data.session) {
-                delete data.session.appId;
-              }
-              Object.assign(req.session, {
-                current_session: JSON.stringify(data),
-                device_id: params.deviceId,
-              });
-              res.send(data);
-            }
-          });
-        } else {
-          res.send(req.session.current_session);
-        }
+        this.register(req, res);
         return true;
       }
 
-      if (req.query.sg) {
-        const defaultArr = {
-          userType: 'Non-Pay',
-          appVersion: '',
-          deviceId: '',
-          level: '',
-          sessionCount: '',
-          timeSinceInstall: '',
-          tags: '',
-        };
-        const params = req.body;
-        for (let i = 0; i < Object.keys(defaultArr); i++) {
-          const key = Object.keys(defaultArr)[i];
-          if (!params[key]) {
-            Object.assign(params, {
-              [key]: defaultArr[key],
-            });
-          }
-        }
-        Object.assign(params, {
-          deviceModel: this.getDevice(req),
-          platform: 'web',
-          osVersion: this.getOs(req),
-        });
-        [
-          'appVersion',
-          'level',
-          'sessionCount',
-          'timeSinceInstall',
-          'tags',
-        ].forEach((key) => {
-          if (params[key] && params[key].trim() === '') {
-            delete params[key];
-          }
-        });
-        if (!params.deviceId || params.deviceId.length === 0) {
-          params.deviceId = req.session.device_id || deviceId;
-        }
-        request.post({
-          url: `${this.backend}smartget.json`,
-          form: params,
-        }, (err, result) => {
-          if (err) {
-            res.status(500).send(err);
-          } else {
-            const data = JSON.parse(result.body);
-            if (data.polls && typeof data.polls === 'object') {
-              if (data.session) {
-                delete data.session.appId;
-              }
-              for (let i = 0; i < Object.keys(data.polls); i++) {
-                const key = Object.keys(data.polls)[i];
-                delete data.polls[key].PollRequest.appId;
-              }
-            }
-            res.send(data);
-          }
-        });
+      if (req.query.sg) { // If smart get query is found
+        this.smartGet(req, res);
         return true;
       }
 
-      if (req.query.response) {
-        const params = req.body;
-        if (!params.deviceId || params.deviceId.length === 0) {
-          params.deviceId = req.session.device_id || deviceId;
+      if (req.query.response) { // If response query is found
+        this.response(req, res);
+        return true;
+      }
+      return true;
+    });
+
+    app.post(`${url}/:appNo`, (req, res) => {
+      const no = parseInt(req.params.appNo, 10);
+      if (process.env.polls) {
+        const appIds = process.env.polls.split(',');
+        if (appIds.length > no) {
+          this.appId = appIds[no];
         }
-        request.post({
-          url: `${this.backend}response/${req.query.token}.json`,
-          form: params,
-        }, (err, result) => {
-          if (err) {
-            res.status(500).send(err);
-          } else {
-            const data = JSON.parse(result.body);
-            res.send(data);
-          }
-        });
+      }
+      if (req.query.register) { // If register query is found
+        this.register(req, res);
+        return true;
+      }
+
+      if (req.query.sg) { // If smart get query is found
+        this.smartGet(req, res);
+        return true;
+      }
+
+      if (req.query.response) { // If response query is found
+        this.response(req, res);
         return true;
       }
       return true;

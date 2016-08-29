@@ -33,6 +33,17 @@ Polljoy('*** INSERT APP ID ***').createEndpoints(app, '/polljoy');
 
 This will initialize the /polljoy [POST] endpoint. Follow the regular polljoy instruction and replace the connect.php endpoint with the url of your newly created /polljoy endpoint
 
+## Extra appIds
+
+If you want to use multiple separate polls on your website (or in your app) you'll need to create multiple apps in Polljoy. Store your appIds in your environment variables separated by a comma like so:
+
+```polls='appid1,appid2' node ...your app...```
+
+And point your javascript sdk to your url followed by the number of the appId, so for appid1 i would point it at:
+
+```http://mybackend.com/polljoy/0```
+
+
 ## Contribute
 
 This package is more or less an exact translation of the connect.php provided by Polljoy. No unit testing is yet introduced. If you would like to contribute to this package, please fork this repository and submit your changes as a pull request. Stars are awarded to contributers who add (mocha) unit testing :) Please respect the linting rules set.

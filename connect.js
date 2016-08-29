@@ -16,8 +16,18 @@ class Connect {
   * @param {String} appId
   */
   constructor(appId) {
-    this.appId = appId;
+    this.setAppId(appId);
     this.backend = 'https://api.polljoy.com/3.0/poll/';
+  }
+
+  /**
+  * setAppId()
+  * sets the appId
+  *
+  * @param {String} appId
+  */
+  setAppId(appId) {
+    this.appId = appId;
   }
 
   /**
@@ -266,7 +276,7 @@ class Connect {
     });
 
     app.post(`${url}/:appId`, (req, res) => {
-      this.appId = req.params.appId;
+      this.setAppId(req.params.appId);
       if (req.query.register) { // If register query is found
         this.register(req, res);
         return true;
